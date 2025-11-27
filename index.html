@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Výkup kníh - APP</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      color: #333;
+      padding: 20px;
+      margin: 0;
+    }
+
+    h1, h2 {
+      text-align: center;
+    }
+
+    form {
+      max-width: 500px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #45a049;
+    }
+
+    pre {
+      max-width: 700px;
+      margin: 20px auto;
+      padding: 15px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      overflow-x: auto;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 50px;
+      padding: 20px;
+      background: #333;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <h1>Výpočet profitu knihy</h1>
+  <form id="bookForm">
+    <label>Názov knihy:<br>
+      <input type="text" id="title" required>
+    </label>
+    <label>Cena kúpy (€):<br>
+      <input type="number" step="0.01" id="buyPrice" required>
+    </label>
+    <button type="submit">Skontrolovať výkup + profit</button>
+  </form>
+
+  <h2>Výsledok:</h2>
+  <pre id="result"></pre>
+
+  <footer>
+    &copy; 2025 PΞTTO. Všetky práva vyhradené. Určené len pre informačné účely.
+  </footer>
+
+  <script>
+    const form = document.getElementById('bookForm');
+    const result = document.getElementById('result');
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const title = document.getElementById('title').value;
+      const buyPrice = document.getElementById('buyPrice').value;
+
+      result.textContent = 'Načítavam...';
+
+      try {
+        const res = await fetch(`/api/book?title=${encodeURIComponent(title)}&buyPrice=${buyPrice}`);
+        const data = await res.json();
+        result.textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        result.textContent = 'Chyba pri načítaní: ' + err;
+      }
+    });
+  </script>
+</body>
+</html>
