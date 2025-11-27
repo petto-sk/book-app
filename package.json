@@ -1,5 +1,5 @@
 {
-  "name": "book-profit-app",
+  "name": "book-app",
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
@@ -8,6 +8,6 @@
   "dependencies": {
     "express": "^4.18.2",
     "node-fetch": "^2.6.12",
-    "puppeteer": "^21.3.8"
+    "puppeteer-core": "^21.3.8"
   }
 }

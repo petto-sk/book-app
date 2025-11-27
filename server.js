@@ -1,29 +1,27 @@
 // === server.js ===
 const express = require('express');
 const fetch = require('node-fetch');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core'); // <-- core verzia
 const app = express();
 app.use(express.static(__dirname));
 
-// --- ISBN10 -> ISBN13
-function isbn10to13(isbn10) {
-  if (isbn10.length !== 10) return null;
-  let core = '978' + isbn10.slice(0, 9);
-  let sum = 0;
-  for (let i = 0; i < 12; i++) sum += parseInt(core[i]) * (i % 2 ? 3 : 1);
-  let check = (10 - (sum % 10)) % 10;
-  return core + check;
-}
-
 // --- SLUG
 function slugify(text) {
-  return text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  return text.normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 }
 
 // --- Vykupujeme-online
 async function getBuybackPrice(url) {
   try {
-    const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      executablePath: '/usr/bin/chromium-browser' // <-- systémový Chromium
+    });
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: 'networkidle2' });
     await page.waitForSelector('p.text-p__detail--price');
@@ -55,7 +53,7 @@ app.get('/api/book', async (req, res) => {
   const info = gb.items[0].volumeInfo;
   const title = info.title || 'Unknown';
   const isbn10 = (info.industryIdentifiers || []).find(i => i.type === 'ISBN_10')?.identifier;
-  const isbn = isbn10to13(isbn10) || (info.industryIdentifiers || []).find(i => i.type === 'ISBN_13')?.identifier;
+  const isbn = isbn10 ? '978' + isbn10.slice(0, 9) + (((10 - [...('978'+isbn10.slice(0,9))].reduce((sum, d, i) => sum + parseInt(d)*(i%2?3:1), 0)) % 10)) : null;
   const year = info.publishedDate ? info.publishedDate.slice(0,4) : '0000';
 
   if (!isbn) return res.json({ error: 'ISBN nenájdené, kniha nie je podporovaná', title });
@@ -79,4 +77,5 @@ app.get('/api/book', async (req, res) => {
   });
 });
 
-app.listen(3000, () => console.log('Server beží na http://localhost:3000'));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server beží na porte ${PORT}`));
